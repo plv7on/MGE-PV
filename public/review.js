@@ -2,6 +2,7 @@ const loginPanel = document.getElementById("loginPanel");
 const adminPanel = document.getElementById("adminPanel");
 const loginForm = document.getElementById("loginForm");
 const loginStatus = document.getElementById("loginStatus");
+const exportCsvLink = document.getElementById("exportCsvLink");
 const logoutButton = document.getElementById("logoutButton");
 const statsGrid = document.getElementById("statsGrid");
 const submissionsList = document.getElementById("submissionsList");
@@ -363,6 +364,7 @@ function onSearchInput(event) {
 function showLogin() {
   loginPanel.classList.remove("hidden");
   adminPanel.classList.add("hidden");
+  exportCsvLink.classList.add("hidden");
   logoutButton.classList.add("hidden");
   detailContent.innerHTML = "";
   requestAnimationFrame(() => loginPanel.classList.add("revealed"));
@@ -371,6 +373,7 @@ function showLogin() {
 function showAdmin() {
   loginPanel.classList.add("hidden");
   adminPanel.classList.remove("hidden");
+  exportCsvLink.classList.remove("hidden");
   logoutButton.classList.remove("hidden");
   requestAnimationFrame(() => adminPanel.classList.add("revealed"));
 }

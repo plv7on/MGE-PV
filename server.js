@@ -28,6 +28,7 @@ const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
   ".js": "application/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".csv": "text/csv; charset=utf-8",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -78,6 +79,21 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       return sendJson(res, 200, readJson(SUBMISSIONS_FILE));
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/submissions.csv") {
+      if (!requireAdmin(req, res)) {
+        return;
+      }
+      const submissions = readJson(SUBMISSIONS_FILE);
+      const csv = submissionsToCsv(submissions);
+      res.writeHead(200, {
+        "Content-Type": MIME_TYPES[".csv"],
+        "Content-Disposition": "attachment; filename=\"mge-submissions.csv\"",
+        "Cache-Control": "no-store"
+      });
+      res.end(csv);
+      return;
     }
 
     if (req.method === "POST" && url.pathname === "/api/submissions") {
@@ -421,4 +437,65 @@ function validateSubmission(fields, files) {
   }
 
   return null;
+}
+
+function submissionsToCsv(submissions) {
+  const header = [
+    "id",
+    "createdAt",
+    "teamName",
+    "player1Epic",
+    "player1Discord",
+    "player2Epic",
+    "player2Discord",
+    "reviewStatus",
+    "reviewedAt",
+    "reviewedBy",
+    "adminNotes",
+    "player1DocumentName",
+    "player1DocumentUrl",
+    "player2DocumentName",
+    "player2DocumentUrl"
+  ];
+
+  const rows = [header];
+  for (const submission of submissions) {
+    const player1Doc = getFileByField(submission.files, "player1Document");
+    const player2Doc = getFileByField(submission.files, "player2Document");
+    rows.push([
+      submission.id || "",
+      submission.createdAt || "",
+      submission.teamName || "",
+      submission.player1Epic || "",
+      submission.player1Discord || "",
+      submission.player2Epic || "",
+      submission.player2Discord || "",
+      submission.reviewStatus || "",
+      submission.reviewedAt || "",
+      submission.reviewedBy || "",
+      submission.adminNotes || "",
+      player1Doc ? player1Doc.originalName || "" : "",
+      player1Doc ? player1Doc.url || "" : "",
+      player2Doc ? player2Doc.originalName || "" : "",
+      player2Doc ? player2Doc.url || "" : ""
+    ]);
+  }
+
+  return rows.map((row) => row.map(csvEscape).join(",")).join("\r\n") + "\r\n";
+}
+
+function getFileByField(files, fieldName) {
+  if (!Array.isArray(files)) {
+    return null;
+  }
+  return files.find((file) => file && file.fieldName === fieldName) || null;
+}
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  const normalized = text.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  if (/[",\n]/.test(normalized)) {
+    return `"${normalized.replaceAll('"', '""')}"`;
+  }
+  return normalized;
 }
