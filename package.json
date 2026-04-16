@@ -1,0 +1,9 @@
+{
+  "name": "mge-team-verification",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local verification system for the MGE 2026 Fortnite tournament.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

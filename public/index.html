@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MGE 2026 Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Teko:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero hero-poster reveal">
+        <div class="hero-visual hero-visual-full">
+          <img
+            class="hero-image hero-image-official"
+            src="/assets/mge-qualification-3.webp"
+            alt="MGE 2026 Fortnite qualification poster"
+            onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1600&q=80';"
+          />
+          <div class="hero-noise hero-noise-strong" aria-hidden="true"></div>
+          <div class="hero-glow hero-glow-orange" aria-hidden="true"></div>
+          <div class="hero-glow hero-glow-green" aria-hidden="true"></div>
+        </div>
+        <div class="hero-topline">
+          <div class="brand-lockup">
+            <div class="brand-mark" aria-hidden="true">MGE</div>
+            <div>
+              <p class="brand-subtitle">Morocco Gaming Expo</p>
+              <p class="brand-year">2026 Verification System</p>
+            </div>
+          </div>
+          <div class="brand-chip">Fortnite Duo Qualification</div>
+        </div>
+        <div class="hero-copy">
+          <p class="eyebrow">MGE 2026 Fortnite Tournament</p>
+          <h1>Team verification</h1>
+          <p class="lede">
+            Submit one clean verification package for your duo. Upload a valid identity document for both players:
+            CIN, passport, driver's license, or birth certificate.
+          </p>
+          <div class="hero-meta">
+            <div class="meta-pill">Qualification Flow</div>
+            <div class="meta-pill">Identity Check Required</div>
+            <div class="meta-pill">Morocco Gaming Expo 2026</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel floating-panel reveal" id="verification-form">
+        <div class="section-heading panel-heading">
+          <div>
+            <p class="eyebrow">Verification Form</p>
+            <h2>Team and player details</h2>
+          </div>
+          <p class="panel-copy">One submission per duo. Both player documents must be uploaded before review.</p>
+        </div>
+
+        <form id="verificationForm" enctype="multipart/form-data">
+          <div class="form-flow">
+            <section class="form-stage stage-wide reveal">
+              <div class="stage-copy">
+                <p class="stage-kicker">Team Identity</p>
+                <h3>Start with the team name</h3>
+              </div>
+              <label class="field field-hero">
+                <span class="field-label">Team name</span>
+                <input name="teamName" type="text" placeholder="Enter your duo team name" required />
+              </label>
+            </section>
+
+            <section class="duo-grid reveal">
+              <article class="player-panel">
+                <div class="player-head">
+                  <p class="stage-kicker">Player 1</p>
+                  <h3>Epic and Discord</h3>
+                </div>
+                <div class="player-fields">
+                  <label class="field glass-field">
+                    <span class="field-label">Epic User Name Player 1</span>
+                    <input name="player1Epic" type="text" placeholder="Epic Games username" required />
+                  </label>
+                  <label class="field glass-field">
+                    <span class="field-label">Discord User Name Player 1</span>
+                    <input name="player1Discord" type="text" placeholder="Discord username" required />
+                  </label>
+                </div>
+              </article>
+
+              <article class="player-panel">
+                <div class="player-head">
+                  <p class="stage-kicker">Player 2</p>
+                  <h3>Epic and Discord</h3>
+                </div>
+                <div class="player-fields">
+                  <label class="field glass-field">
+                    <span class="field-label">Epic User Name Player 2</span>
+                    <input name="player2Epic" type="text" placeholder="Epic Games username" required />
+                  </label>
+                  <label class="field glass-field">
+                    <span class="field-label">Discord User Name Player 2</span>
+                    <input name="player2Discord" type="text" placeholder="Discord username" required />
+                  </label>
+                </div>
+              </article>
+            </section>
+          </div>
+
+          <div class="upload-band reveal">
+            <div>
+              <p class="eyebrow">Identity Documents</p>
+              <h3>Upload both players' documents</h3>
+              <p class="upload-copy">Accepted: CIN, passport, driver's license, or birth certificate.</p>
+            </div>
+            <div class="grid uploads-grid">
+              <label class="field upload-field">
+                <span class="field-label">Identity Document Player 1</span>
+                <input name="player1Document" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp" required />
+                <span class="field-hint">Front-facing, readable, uncropped.</span>
+              </label>
+              <label class="field upload-field">
+                <span class="field-label">Identity Document Player 2</span>
+                <input name="player2Document" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp" required />
+                <span class="field-hint">Front-facing, readable, uncropped.</span>
+              </label>
+            </div>
+          </div>
+
+          <label class="checkbox consent-row reveal">
+            <input name="consent" type="checkbox" required />
+            I confirm that both uploaded documents are valid and belong to the listed players.
+          </label>
+
+          <div class="submit-row reveal">
+            <button class="button" type="submit">Submit verification</button>
+            <p class="status" id="formStatus"></p>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

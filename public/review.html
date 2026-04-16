@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MGE 2026 Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Teko:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="site-top review-topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">MGE</div>
+          <div>
+            <p class="brand-subtitle">Morocco Gaming Expo</p>
+            <p class="brand-year">2026 Admin Console</p>
+          </div>
+        </div>
+        <div class="brand-chip">Protected Review Access</div>
+      </header>
+
+      <section class="panel review-hero reveal">
+        <div class="review-hero-copy">
+          <p class="eyebrow">MGE 2026 Fortnite Tournament</p>
+          <h1>Review console</h1>
+          <p class="lede">
+            Inspect submissions, open both identity documents, leave internal notes, and set the final review result
+            without losing context.
+          </p>
+        </div>
+        <div class="review-hero-actions">
+          <a class="button button-secondary" href="/">Back to form</a>
+          <button class="button button-secondary hidden" id="logoutButton" type="button">Log out</button>
+        </div>
+      </section>
+
+      <section class="panel admin-auth reveal" id="loginPanel">
+        <div class="section-heading panel-heading admin-auth-head">
+          <div>
+            <p class="eyebrow">Secure Access</p>
+            <h2>Admin login</h2>
+          </div>
+          <p class="panel-copy">Only authorized reviewers can open identity documents and update verification results.</p>
+        </div>
+        <form id="loginForm" class="stack narrow-stack">
+          <label class="field">
+            <span class="field-label">Username</span>
+            <input name="username" type="text" autocomplete="username" required />
+          </label>
+          <label class="field">
+            <span class="field-label">Password</span>
+            <input name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <div class="submit-row">
+            <button class="button" type="submit">Sign in</button>
+            <p class="status" id="loginStatus"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="admin-grid hidden reveal" id="adminPanel">
+        <section class="panel admin-overview">
+          <div class="section-heading panel-heading admin-overview-head">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>Submission status</h2>
+            </div>
+            <p class="panel-copy">Use the queue to move between teams, then complete the review on the right.</p>
+          </div>
+          <div class="stats-grid" id="statsGrid"></div>
+        </section>
+
+        <section class="panel admin-sidebar">
+          <div class="section-heading panel-heading admin-sidebar-head">
+            <div>
+              <p class="eyebrow">Queue</p>
+              <h2>Submission list</h2>
+            </div>
+            <p class="panel-copy" id="queueSummary">All active submissions.</p>
+          </div>
+          <label class="field queue-search">
+            <span class="field-label">Search teams or players</span>
+            <input id="queueSearch" type="search" placeholder="Team name, Epic ID, Discord" />
+          </label>
+          <div class="filter-row" id="filterRow">
+            <button class="button button-secondary active-filter" data-filter="all" type="button">All</button>
+            <button class="button button-secondary" data-filter="pending" type="button">Pending</button>
+            <button class="button button-secondary" data-filter="approved" type="button">Approved</button>
+            <button class="button button-secondary" data-filter="rejected" type="button">Rejected</button>
+          </div>
+          <div id="submissionsList" class="stack"></div>
+        </section>
+
+        <section class="panel admin-detail" id="detailPanel">
+          <div class="section-heading panel-heading admin-detail-head">
+            <div>
+              <p class="eyebrow">Review</p>
+              <h2>Submission detail</h2>
+            </div>
+            <p class="panel-copy">Validate the player information, inspect both documents, and save the final decision.</p>
+          </div>
+          <div id="detailContent" class="empty">Select a submission to review.</div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/review.js"></script>
+  </body>
+</html>
