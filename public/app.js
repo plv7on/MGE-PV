@@ -18,7 +18,7 @@ async function submitVerificationForm(event) {
     if (!response.ok) {
       throw new Error(data.error || "Unable to submit verification.");
     }
-    formStatus.textContent = `Verification submitted for ${data.submission.teamName}.`;
+    window.location.href = `/submitted.html?team=${encodeURIComponent(data.submission.teamName)}`;
     form.reset();
   } catch (error) {
     formStatus.textContent = error.message;

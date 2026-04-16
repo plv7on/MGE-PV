@@ -227,6 +227,7 @@ function renderDetail() {
         </label>
         <div class="submit-row">
           <button class="button" type="submit">Save review</button>
+          <button class="button button-secondary danger-button" id="deleteSubmissionButton" type="button">Delete submission</button>
           <p class="status" id="reviewStatusText">${submission.reviewedAt ? `Last reviewed ${formatDate(submission.reviewedAt)}` : ""}</p>
         </div>
       </form>
@@ -262,6 +263,27 @@ function renderDetail() {
         item.setAttribute("aria-checked", item === button ? "true" : "false");
       });
     });
+  });
+
+  document.getElementById("deleteSubmissionButton").addEventListener("click", async () => {
+    const confirmed = window.confirm(`Delete ${submission.teamName}? This will permanently remove the submission and both uploaded documents.`);
+    if (!confirmed) {
+      return;
+    }
+    const statusText = document.getElementById("reviewStatusText");
+    statusText.textContent = "Deleting submission...";
+    const response = await fetch(`/api/submissions/${submission.id}`, { method: "DELETE" });
+    const data = await response.json();
+    if (!response.ok) {
+      statusText.textContent = data.error || "Unable to delete submission.";
+      return;
+    }
+    submissions = submissions.filter((item) => item.id !== submission.id);
+    const visible = getVisibleSubmissions();
+    selectedId = visible[0] ? visible[0].id : null;
+    renderStats(submissions);
+    renderSubmissions();
+    renderDetail();
   });
 }
 

@@ -130,6 +130,23 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { submission: entry });
     }
 
+    if (req.method === "DELETE" && url.pathname.startsWith("/api/submissions/")) {
+      if (!requireAdmin(req, res)) {
+        return;
+      }
+      const id = url.pathname.split("/")[3];
+      const submissions = readJson(SUBMISSIONS_FILE);
+      const index = submissions.findIndex((item) => item.id === id);
+      if (index === -1) {
+        return sendJson(res, 404, { error: "Submission not found." });
+      }
+
+      const [removed] = submissions.splice(index, 1);
+      deleteUploadedFiles(removed.files || []);
+      writeJson(SUBMISSIONS_FILE, submissions);
+      return sendJson(res, 200, { deleted: true, submissionId: id });
+    }
+
     if (req.method === "GET" && url.pathname.startsWith("/uploads/")) {
       if (!requireAdmin(req, res)) {
         return;
@@ -367,6 +384,18 @@ function saveUploadedFiles(files) {
       url: `/uploads/${storedName}`
     };
   });
+}
+
+function deleteUploadedFiles(files) {
+  for (const file of files) {
+    if (!file || !file.storedName) {
+      continue;
+    }
+    const target = path.join(UPLOAD_DIR, path.basename(file.storedName));
+    if (fs.existsSync(target)) {
+      fs.unlinkSync(target);
+    }
+  }
 }
 
 function guessExtension(contentType) {

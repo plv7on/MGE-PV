@@ -573,6 +573,17 @@ input[type="file"] {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.danger-button {
+  border-color: rgba(204, 76, 76, 0.28);
+  color: #ffb3b3;
+}
+
+.danger-button:hover {
+  background: rgba(204, 76, 76, 0.12);
+  border-color: rgba(204, 76, 76, 0.44);
+  box-shadow: none;
+}
+
 .hidden {
   display: none !important;
 }
@@ -947,6 +958,102 @@ input[type="file"] {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.024), rgba(255, 255, 255, 0.014));
 }
 
+.submit-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.submit-stage {
+  width: min(760px, 100%);
+  padding: 40px 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 77, 18, 0.14), transparent 22%),
+    radial-gradient(circle at top left, rgba(15, 142, 93, 0.12), transparent 18%),
+    linear-gradient(180deg, rgba(17, 17, 17, 0.96), rgba(17, 17, 17, 0.9));
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.submit-orbit {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 24px;
+}
+
+.submit-ring,
+.submit-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.submit-ring-a {
+  border: 2px solid rgba(255, 77, 18, 0.26);
+  animation: spin-ring 4s linear infinite;
+}
+
+.submit-ring-b {
+  inset: 14px;
+  border: 2px solid rgba(15, 142, 93, 0.22);
+  animation: spin-ring-reverse 3.4s linear infinite;
+}
+
+.submit-core {
+  inset: 38px;
+  background: radial-gradient(circle, rgba(255, 77, 18, 0.9), rgba(255, 77, 18, 0.22));
+  box-shadow: 0 0 36px rgba(255, 77, 18, 0.28);
+  animation: pulse-core 1.8s ease-in-out infinite;
+}
+
+.submit-title {
+  max-width: none;
+  margin-bottom: 10px;
+}
+
+.submit-copy {
+  max-width: 38ch;
+  margin: 0 auto 22px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.submit-steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.submit-step {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: background 240ms ease, border-color 240ms ease, color 240ms ease;
+}
+
+.active-step {
+  background: rgba(255, 77, 18, 0.14);
+  border-color: rgba(255, 77, 18, 0.34);
+  color: #ffffff;
+}
+
+.submit-actions {
+  display: flex;
+  justify-content: center;
+}
+
 .status-pill-group {
   display: flex;
   flex-wrap: wrap;
@@ -1111,4 +1218,23 @@ input[type="file"] {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .submit-stage {
+    padding: 28px 18px;
+  }
+}
+
+@keyframes spin-ring {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-ring-reverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes pulse-core {
+  0%, 100% { transform: scale(0.94); opacity: 0.84; }
+  50% { transform: scale(1.04); opacity: 1; }
 }
