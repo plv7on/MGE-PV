@@ -214,12 +214,13 @@ function renderDetail() {
         </div>
       </div>
       <form id="reviewForm" class="stack review-form">
-        <label class="field">
+        <div class="field">
           <span class="field-label">Review status</span>
-          <select name="reviewStatus">
-            ${renderStatusOptions(submission.reviewStatus)}
-          </select>
-        </label>
+          <div class="status-pill-group" role="radiogroup" aria-label="Review status">
+            ${renderStatusPills(submission.reviewStatus)}
+          </div>
+          <input type="hidden" name="reviewStatus" value="${escapeHtml(submission.reviewStatus)}" />
+        </div>
         <label class="field">
           <span class="field-label">Admin notes</span>
           <textarea name="adminNotes" rows="5" placeholder="Internal review notes">${escapeHtml(submission.adminNotes || "")}</textarea>
@@ -251,6 +252,17 @@ function renderDetail() {
     statusText.textContent = "Review saved.";
     await loadDashboard();
   });
+
+  detailContent.querySelectorAll("[data-review-status]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const hiddenInput = document.querySelector('#reviewForm input[name="reviewStatus"]');
+      hiddenInput.value = button.dataset.reviewStatus;
+      detailContent.querySelectorAll("[data-review-status]").forEach((item) => {
+        item.classList.toggle("active-status-pill", item === button);
+        item.setAttribute("aria-checked", item === button ? "true" : "false");
+      });
+    });
+  });
 }
 
 function renderFileCard(file) {
@@ -274,6 +286,25 @@ function renderFileCard(file) {
 function renderStatusOptions(currentStatus) {
   return ["pending", "approved", "rejected"]
     .map((status) => `<option value="${status}"${status === currentStatus ? " selected" : ""}>${capitalize(status)}</option>`)
+    .join("");
+}
+
+function renderStatusPills(currentStatus) {
+  return ["pending", "approved", "rejected"]
+    .map((status) => {
+      const isActive = status === currentStatus;
+      return `
+        <button
+          class="status-pill status-pill-${status}${isActive ? " active-status-pill" : ""}"
+          type="button"
+          role="radio"
+          aria-checked="${isActive ? "true" : "false"}"
+          data-review-status="${status}"
+        >
+          ${capitalize(status)}
+        </button>
+      `;
+    })
     .join("");
 }
 
