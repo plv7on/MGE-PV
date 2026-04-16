@@ -5,13 +5,18 @@ const crypto = require("crypto");
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || "0.0.0.0";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "mge2026admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (IS_PRODUCTION ? "" : "mge2026admin");
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, "data"));
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const SUBMISSIONS_FILE = path.join(DATA_DIR, "submissions.json");
+
+if (IS_PRODUCTION && !process.env.ADMIN_PASSWORD) {
+  throw new Error("ADMIN_PASSWORD must be set in production.");
+}
 
 ensureDir(DATA_DIR);
 ensureDir(UPLOAD_DIR);
