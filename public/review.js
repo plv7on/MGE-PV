@@ -106,49 +106,23 @@ function renderSubmissions() {
   }
 
   for (const submission of filtered) {
-    const article = document.createElement("article");
-    article.className = `review-card review-list-card review-list-item${submission.id === selectedId ? " selected-card" : ""}`;
-    article.setAttribute("role", "button");
-    article.setAttribute("tabindex", "0");
-    article.setAttribute("aria-pressed", submission.id === selectedId ? "true" : "false");
-    article.innerHTML = `
-      <div class="queue-card-accent queue-card-accent-${submission.reviewStatus}" aria-hidden="true"></div>
-      <div class="queue-card-shell">
-        <div class="queue-row-main">
-          <div class="queue-title-group">
-            <p class="queue-kicker">Team dossier</p>
-            <h3>${escapeHtml(submission.teamName)}</h3>
-            <div class="queue-player-summary-list">
-              <p class="queue-player-summary"><span>P1</span>${escapeHtml(submission.player1Epic)}</p>
-              <p class="queue-player-summary"><span>P2</span>${escapeHtml(submission.player2Epic)}</p>
-            </div>
-          </div>
-          <div class="queue-head-status">
-            <span class="badge badge-${submission.reviewStatus}">${escapeHtml(submission.reviewStatus)}</span>
-            <span class="queue-open-label">${submission.id === selectedId ? "Open" : "Select"}</span>
-          </div>
-        </div>
-        <div class="queue-meta">
-          <span class="queue-meta-item">Submitted ${formatDate(submission.createdAt)}</span>
-          <span class="queue-meta-item">${submission.files.length} file${submission.files.length === 1 ? "" : "s"}</span>
-          <span class="queue-meta-item">${submission.reviewedBy ? `By ${escapeHtml(submission.reviewedBy)}` : "Unassigned"}</span>
-        </div>
-        <p class="queue-review-line">${submission.reviewedAt ? `Reviewed ${formatDate(submission.reviewedAt)}` : "No review saved yet."}</p>
-      </div>
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `team-pill team-pill-${submission.reviewStatus}${submission.id === selectedId ? " selected-team-pill" : ""}`;
+    button.setAttribute("aria-pressed", submission.id === selectedId ? "true" : "false");
+    button.title = `${submission.teamName} • ${capitalize(submission.reviewStatus)} • ${submission.player1Epic} / ${submission.player2Epic}`;
+    button.innerHTML = `
+      <span class="team-pill-dot" aria-hidden="true"></span>
+      <span class="team-pill-name">${escapeHtml(submission.teamName)}</span>
+      <span class="team-pill-status">${escapeHtml(submission.reviewStatus)}</span>
     `;
     const selectSubmission = () => {
       selectedId = submission.id;
       renderSubmissions();
       renderDetail();
     };
-    article.addEventListener("click", selectSubmission);
-    article.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectSubmission();
-      }
-    });
-    submissionsList.appendChild(article);
+    button.addEventListener("click", selectSubmission);
+    submissionsList.appendChild(button);
   }
 }
 
