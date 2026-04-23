@@ -576,16 +576,15 @@ function renderDocumentBrowserCard(file) {
         <span class="badge badge-${file.reviewStatus}">${escapeHtml(file.reviewStatus)}</span>
       </div>
       <div class="doc-browser-meta">
-        <p class="info-row"><span class="info-key">Player</span><span>${escapeHtml(file.playerEpic)}</span></p>
-        <p class="info-row"><span class="info-key">Discord</span><span>${escapeHtml(file.playerDiscord)}</span></p>
-        <p class="info-row"><span class="info-key">Document type</span><span>${escapeHtml(formatDocumentType(file.documentType))}</span></p>
-        <p class="info-row"><span class="info-key">Submitted</span><span>${formatDate(file.createdAt)}</span></p>
+        <p class="doc-browser-line"><span class="info-key">Player</span><strong>${escapeHtml(file.playerEpic)}</strong></p>
+        <p class="doc-browser-line"><span class="info-key">Type</span><span>${escapeHtml(formatDocumentType(file.documentType))}</span></p>
+        <p class="doc-browser-line"><span class="info-key">Submitted</span><span>${formatDate(file.createdAt)}</span></p>
       </div>
-      <p class="doc-name">${escapeHtml(file.originalName)}</p>
+      <p class="doc-name doc-browser-name">${escapeHtml(file.originalName)}</p>
       <div class="file-links">
-        <a class="button button-secondary" href="${file.url}" target="_blank" rel="noreferrer">Open</a>
-        <a class="button button-secondary" href="${file.url}" download>Download</a>
-        <button class="button button-secondary" type="button" data-select-submission="${file.submissionId}">Review team</button>
+        <a class="button button-secondary button-compact" href="${file.url}" target="_blank" rel="noreferrer">Open</a>
+        <a class="button button-secondary button-compact" href="${file.url}" download>Download</a>
+        <button class="button button-secondary button-compact" type="button" data-select-submission="${file.submissionId}">Review</button>
       </div>
     </article>
   `;
