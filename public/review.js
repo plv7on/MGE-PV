@@ -176,8 +176,8 @@ function renderDetail() {
               </div>
             </div>
             <div class="detail-grid detail-grid-players">
-              ${renderPlayerCard("Player 1", "Primary", submission.player1Epic, submission.player1Discord, getFileLabel(submission.files, "player1Document"))}
-              ${renderPlayerCard("Player 2", "Secondary", submission.player2Epic, submission.player2Discord, getFileLabel(submission.files, "player2Document"))}
+              ${renderPlayerCard("Player 1", "Primary", submission.player1Epic, submission.player1Discord, getFileLabel(submission.files, "player1Document"), submission.player1DocumentType)}
+              ${renderPlayerCard("Player 2", "Secondary", submission.player2Epic, submission.player2Discord, getFileLabel(submission.files, "player2Document"), submission.player2DocumentType)}
             </div>
           </section>
 
@@ -283,7 +283,7 @@ function renderDetail() {
   });
 }
 
-function renderPlayerCard(label, role, epic, discord, documentLabel) {
+function renderPlayerCard(label, role, epic, discord, documentLabel, documentType) {
   return `
     <article class="info-card player-detail-card">
       <div class="player-card-head">
@@ -293,6 +293,7 @@ function renderPlayerCard(label, role, epic, discord, documentLabel) {
       <strong class="info-value">${escapeHtml(epic)}</strong>
       <div class="info-stack">
         <p class="info-row"><span class="info-key">Discord</span><span>${escapeHtml(discord)}</span></p>
+        <p class="info-row"><span class="info-key">Type</span><span>${escapeHtml(formatDocumentType(documentType))}</span></p>
         <p class="info-row"><span class="info-key">Document</span><span>${escapeHtml(documentLabel)}</span></p>
       </div>
     </article>
@@ -435,6 +436,16 @@ function getVisibleSubmissions() {
 function getFileLabel(files, fieldName) {
   const match = files.find((file) => file.fieldName === fieldName);
   return match ? match.originalName : "Missing";
+}
+
+function formatDocumentType(value) {
+  const labels = {
+    cin: "CIN",
+    passport: "Passport",
+    drivers_license: "Driver's license",
+    birth_certificate: "Birth certificate"
+  };
+  return labels[value] || "Not specified";
 }
 
 function setupMotion() {

@@ -36,6 +36,10 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
   ".pdf": "application/pdf"
 };
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const ALLOWED_DOCUMENT_TYPES = new Set(["cin", "passport", "drivers_license", "birth_certificate"]);
+const ALLOWED_UPLOAD_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".pdf"]);
+const ALLOWED_UPLOAD_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "application/pdf"]);
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -98,22 +102,25 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/api/submissions") {
       const form = await readMultipartForm(req);
-      const validationError = validateSubmission(form.fields, form.files);
+      const submissions = readJson(SUBMISSIONS_FILE);
+      const validationError = validateSubmission(form.fields, form.files, submissions);
       if (validationError) {
         return sendJson(res, 400, { error: validationError });
       }
 
       const storedFiles = saveUploadedFiles(form.files);
-      const submissions = readJson(SUBMISSIONS_FILE);
       const submission = {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         reviewStatus: "pending",
-        teamName: form.fields.teamName.trim(),
-        player1Epic: form.fields.player1Epic.trim(),
-        player1Discord: form.fields.player1Discord.trim(),
-        player2Epic: form.fields.player2Epic.trim(),
-        player2Discord: form.fields.player2Discord.trim(),
+        teamName: normalizeSubmissionValue(form.fields.teamName),
+        player1Epic: normalizeSubmissionValue(form.fields.player1Epic),
+        player1Discord: normalizeSubmissionValue(form.fields.player1Discord),
+        player1DocumentType: normalizeSubmissionValue(form.fields.player1DocumentType),
+        player2Epic: normalizeSubmissionValue(form.fields.player2Epic),
+        player2Discord: normalizeSubmissionValue(form.fields.player2Discord),
+        player2DocumentType: normalizeSubmissionValue(form.fields.player2DocumentType),
+        consentAt: new Date().toISOString(),
         files: storedFiles
       };
 
@@ -422,21 +429,142 @@ function guessExtension(contentType) {
   return ".bin";
 }
 
-function validateSubmission(fields, files) {
-  const required = ["teamName", "player1Epic", "player1Discord", "player2Epic", "player2Discord"];
-  for (const key of required) {
-    if (!fields[key] || !fields[key].trim()) {
-      return `Missing field: ${key}`;
+function validateSubmission(fields, files, existingSubmissions = []) {
+  const teamName = normalizeSubmissionValue(fields.teamName);
+  const player1Epic = normalizeSubmissionValue(fields.player1Epic);
+  const player1Discord = normalizeSubmissionValue(fields.player1Discord);
+  const player1DocumentType = normalizeSubmissionValue(fields.player1DocumentType);
+  const player2Epic = normalizeSubmissionValue(fields.player2Epic);
+  const player2Discord = normalizeSubmissionValue(fields.player2Discord);
+  const player2DocumentType = normalizeSubmissionValue(fields.player2DocumentType);
+
+  if (!teamName) return "Team name is required.";
+  if (teamName.length < 3) return "Team name must be at least 3 characters.";
+  if (teamName.length > 40) return "Team name must stay under 40 characters.";
+
+  const textValidationError =
+    validatePlayerField(player1Epic, "Player 1 Epic username") ||
+    validateDiscordValue(player1Discord, "Player 1 Discord username") ||
+    validatePlayerField(player2Epic, "Player 2 Epic username") ||
+    validateDiscordValue(player2Discord, "Player 2 Discord username");
+  if (textValidationError) {
+    return textValidationError;
+  }
+
+  if (normalizeKey(player1Epic) === normalizeKey(player2Epic)) {
+    return "Player 1 and player 2 must use different Epic usernames.";
+  }
+
+  if (normalizeKey(player1Discord) === normalizeKey(player2Discord)) {
+    return "Player 1 and player 2 must use different Discord usernames.";
+  }
+
+  if (!ALLOWED_DOCUMENT_TYPES.has(player1DocumentType) || !ALLOWED_DOCUMENT_TYPES.has(player2DocumentType)) {
+    return "A valid document type is required for both players.";
+  }
+
+  if (!isConsentAccepted(fields.consent)) {
+    return "Consent confirmation is required before submitting.";
+  }
+
+  const groupedFiles = {
+    player1Document: files.filter((file) => file.fieldName === "player1Document"),
+    player2Document: files.filter((file) => file.fieldName === "player2Document")
+  };
+  const unexpectedFile = files.find((file) => !Object.prototype.hasOwnProperty.call(groupedFiles, file.fieldName));
+  if (unexpectedFile) {
+    return "Unexpected upload field received.";
+  }
+
+  if (groupedFiles.player1Document.length !== 1 || groupedFiles.player2Document.length !== 1) {
+    return "Upload exactly one identity document for each player.";
+  }
+
+  for (const file of files) {
+    const fileError = validateUploadedFile(file);
+    if (fileError) {
+      return fileError;
     }
   }
 
-  const hasPlayer1Document = files.some((file) => file.fieldName === "player1Document");
-  const hasPlayer2Document = files.some((file) => file.fieldName === "player2Document");
-  if (!hasPlayer1Document || !hasPlayer2Document) {
-    return "Both player identity documents are required.";
+  const teamNameTaken = existingSubmissions.some((submission) => normalizeKey(submission.teamName) === normalizeKey(teamName));
+  if (teamNameTaken) {
+    return "That team name already has a verification package.";
+  }
+
+  const duoKey = createDuoKey(player1Epic, player2Epic);
+  const duplicateDuo = existingSubmissions.some((submission) => createDuoKey(submission.player1Epic, submission.player2Epic) === duoKey);
+  if (duplicateDuo) {
+    return "This duo already has a verification package.";
   }
 
   return null;
+}
+
+function validatePlayerField(value, label) {
+  if (!value) {
+    return `${label} is required.`;
+  }
+  if (value.length < 2) {
+    return `${label} must be at least 2 characters.`;
+  }
+  if (value.length > 32) {
+    return `${label} must stay under 32 characters.`;
+  }
+  return null;
+}
+
+function validateDiscordValue(value, label) {
+  const baseError = validatePlayerField(value, label);
+  if (baseError) {
+    return baseError;
+  }
+  if (/\s/.test(value)) {
+    return `${label} cannot contain spaces.`;
+  }
+  return null;
+}
+
+function validateUploadedFile(file) {
+  if (!file || !file.originalName) {
+    return "Both player identity documents are required.";
+  }
+
+  const ext = path.extname(file.originalName).toLowerCase();
+  const mimeType = String(file.contentType || "").toLowerCase();
+  if (!ALLOWED_UPLOAD_EXTENSIONS.has(ext)) {
+    return "Only PNG, JPG, WEBP, and PDF documents are allowed.";
+  }
+
+  if (mimeType && mimeType !== "application/octet-stream" && !ALLOWED_UPLOAD_MIME_TYPES.has(mimeType)) {
+    return "Only PNG, JPG, WEBP, and PDF documents are allowed.";
+  }
+
+  if (!file.buffer || !file.buffer.length) {
+    return "Uploaded documents cannot be empty.";
+  }
+
+  if (file.buffer.length > MAX_UPLOAD_BYTES) {
+    return "Each uploaded document must be 8 MB or smaller.";
+  }
+
+  return null;
+}
+
+function normalizeSubmissionValue(value) {
+  return String(value || "").trim();
+}
+
+function normalizeKey(value) {
+  return normalizeSubmissionValue(value).toLowerCase();
+}
+
+function createDuoKey(playerOne, playerTwo) {
+  return [normalizeKey(playerOne), normalizeKey(playerTwo)].sort().join("::");
+}
+
+function isConsentAccepted(value) {
+  return ["on", "true", "1", "yes"].includes(normalizeKey(value));
 }
 
 function submissionsToCsv(submissions) {
@@ -446,8 +574,11 @@ function submissionsToCsv(submissions) {
     "teamName",
     "player1Epic",
     "player1Discord",
+    "player1DocumentType",
     "player2Epic",
     "player2Discord",
+    "player2DocumentType",
+    "consentAt",
     "reviewStatus",
     "reviewedAt",
     "reviewedBy",
@@ -468,8 +599,11 @@ function submissionsToCsv(submissions) {
       submission.teamName || "",
       submission.player1Epic || "",
       submission.player1Discord || "",
+      submission.player1DocumentType || "",
       submission.player2Epic || "",
       submission.player2Discord || "",
+      submission.player2DocumentType || "",
+      submission.consentAt || "",
       submission.reviewStatus || "",
       submission.reviewedAt || "",
       submission.reviewedBy || "",

@@ -60,8 +60,32 @@
           <p class="panel-copy">One submission per duo. Both player documents must be uploaded before review.</p>
         </div>
 
-        <form id="verificationForm" enctype="multipart/form-data">
+        <form id="verificationForm" enctype="multipart/form-data" novalidate>
           <div class="form-flow">
+            <section class="form-stage stage-wide reveal">
+              <div class="stage-copy">
+                <p class="stage-kicker">Before You Submit</p>
+                <h3>Prepare one clean duo package</h3>
+              </div>
+              <div class="summary-strip form-checklist">
+                <article class="summary-pill-card">
+                  <span class="info-label">Step 1</span>
+                  <strong class="info-value">Use the final team name</strong>
+                  <p class="stat-copy">Team names and duo Epic pairings are checked for duplicates before storage.</p>
+                </article>
+                <article class="summary-pill-card">
+                  <span class="info-label">Step 2</span>
+                  <strong class="info-value">Choose the document type</strong>
+                  <p class="stat-copy">Mark each upload as CIN, passport, driver's license, or birth certificate.</p>
+                </article>
+                <article class="summary-pill-card">
+                  <span class="info-label">Step 3</span>
+                  <strong class="info-value">Upload readable files</strong>
+                  <p class="stat-copy">Accepted formats: PNG, JPG, WEBP, and PDF up to 8 MB per player.</p>
+                </article>
+              </div>
+            </section>
+
             <section class="form-stage stage-wide reveal">
               <div class="stage-copy">
                 <p class="stage-kicker">Team Identity</p>
@@ -69,7 +93,20 @@
               </div>
               <label class="field field-hero">
                 <span class="field-label">Team name</span>
-                <input name="teamName" type="text" placeholder="Enter your duo team name" required />
+                <input
+                  id="teamName"
+                  name="teamName"
+                  type="text"
+                  placeholder="Enter your duo team name"
+                  maxlength="40"
+                  autocomplete="off"
+                  required
+                />
+                <div class="field-meta">
+                  <span class="field-hint">Use the official duo name you want reviewers to see.</span>
+                  <span class="field-counter" id="teamNameCounter">0 / 40</span>
+                </div>
+                <span class="field-error" data-error-for="teamName"></span>
               </label>
             </section>
 
@@ -82,11 +119,15 @@
                 <div class="player-fields">
                   <label class="field glass-field">
                     <span class="field-label">Epic User Name Player 1</span>
-                    <input name="player1Epic" type="text" placeholder="Epic Games username" required />
+                    <input name="player1Epic" type="text" placeholder="Epic Games username" maxlength="32" autocomplete="off" required />
+                    <span class="field-hint">Use the exact Epic username used for qualification.</span>
+                    <span class="field-error" data-error-for="player1Epic"></span>
                   </label>
                   <label class="field glass-field">
                     <span class="field-label">Discord User Name Player 1</span>
-                    <input name="player1Discord" type="text" placeholder="Discord username" required />
+                    <input name="player1Discord" type="text" placeholder="Discord username" maxlength="32" autocomplete="off" required />
+                    <span class="field-hint">Example: `playername` or `playername#1234`.</span>
+                    <span class="field-error" data-error-for="player1Discord"></span>
                   </label>
                 </div>
               </article>
@@ -99,11 +140,15 @@
                 <div class="player-fields">
                   <label class="field glass-field">
                     <span class="field-label">Epic User Name Player 2</span>
-                    <input name="player2Epic" type="text" placeholder="Epic Games username" required />
+                    <input name="player2Epic" type="text" placeholder="Epic Games username" maxlength="32" autocomplete="off" required />
+                    <span class="field-hint">Must be different from player 1.</span>
+                    <span class="field-error" data-error-for="player2Epic"></span>
                   </label>
                   <label class="field glass-field">
                     <span class="field-label">Discord User Name Player 2</span>
-                    <input name="player2Discord" type="text" placeholder="Discord username" required />
+                    <input name="player2Discord" type="text" placeholder="Discord username" maxlength="32" autocomplete="off" required />
+                    <span class="field-hint">Use the handle the admins should contact if needed.</span>
+                    <span class="field-error" data-error-for="player2Discord"></span>
                   </label>
                 </div>
               </article>
@@ -117,27 +162,97 @@
               <p class="upload-copy">Accepted: CIN, passport, driver's license, or birth certificate.</p>
             </div>
             <div class="grid uploads-grid">
-              <label class="field upload-field">
-                <span class="field-label">Identity Document Player 1</span>
-                <input name="player1Document" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp" required />
-                <span class="field-hint">Front-facing, readable, uncropped.</span>
-              </label>
-              <label class="field upload-field">
-                <span class="field-label">Identity Document Player 2</span>
-                <input name="player2Document" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp" required />
-                <span class="field-hint">Front-facing, readable, uncropped.</span>
-              </label>
+              <article class="upload-card">
+                <div class="upload-card-head">
+                  <p class="info-label">Player 1</p>
+                  <span class="doc-type-pill">Required</span>
+                </div>
+                <label class="field">
+                  <span class="field-label">Document type</span>
+                  <select name="player1DocumentType" required>
+                    <option value="">Select a document type</option>
+                    <option value="cin">CIN</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver's license</option>
+                    <option value="birth_certificate">Birth certificate</option>
+                  </select>
+                  <span class="field-error" data-error-for="player1DocumentType"></span>
+                </label>
+                <label class="field upload-field upload-dropzone">
+                  <span class="field-label">Identity Document Player 1</span>
+                  <input id="player1Document" name="player1Document" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp" required />
+                  <span class="field-hint">Front-facing, readable, uncropped, under 8 MB.</span>
+                  <span class="field-error" data-error-for="player1Document"></span>
+                </label>
+                <div class="file-preview" id="player1DocumentPreview">No file selected yet.</div>
+              </article>
+
+              <article class="upload-card">
+                <div class="upload-card-head">
+                  <p class="info-label">Player 2</p>
+                  <span class="doc-type-pill">Required</span>
+                </div>
+                <label class="field">
+                  <span class="field-label">Document type</span>
+                  <select name="player2DocumentType" required>
+                    <option value="">Select a document type</option>
+                    <option value="cin">CIN</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver's license</option>
+                    <option value="birth_certificate">Birth certificate</option>
+                  </select>
+                  <span class="field-error" data-error-for="player2DocumentType"></span>
+                </label>
+                <label class="field upload-field upload-dropzone">
+                  <span class="field-label">Identity Document Player 2</span>
+                  <input id="player2Document" name="player2Document" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp" required />
+                  <span class="field-hint">Front-facing, readable, uncropped, under 8 MB.</span>
+                  <span class="field-error" data-error-for="player2Document"></span>
+                </label>
+                <div class="file-preview" id="player2DocumentPreview">No file selected yet.</div>
+              </article>
             </div>
           </div>
 
+          <section class="form-stage stage-wide reveal">
+            <div class="stage-copy">
+              <p class="stage-kicker">Final Review</p>
+              <h3>Check the package before sending it</h3>
+            </div>
+            <div class="form-review-head">
+              <p class="upload-copy">The summary below updates live as you fill the form. Missing or duplicated information will keep the package marked as incomplete.</p>
+              <span class="form-readiness-pill" id="formReadinessPill">Incomplete</span>
+            </div>
+            <div class="summary-strip">
+              <article class="summary-pill-card">
+                <span class="info-label">Team</span>
+                <strong class="info-value" id="summaryTeamName">Not set</strong>
+                <p class="stat-copy">Official duo name for this package.</p>
+              </article>
+              <article class="summary-pill-card">
+                <span class="info-label">Player 1</span>
+                <strong class="info-value" id="summaryPlayer1">Missing</strong>
+                <p class="stat-copy" id="summaryPlayer1Doc">Document not ready.</p>
+              </article>
+              <article class="summary-pill-card">
+                <span class="info-label">Player 2</span>
+                <strong class="info-value" id="summaryPlayer2">Missing</strong>
+                <p class="stat-copy" id="summaryPlayer2Doc">Document not ready.</p>
+              </article>
+            </div>
+          </section>
+
           <label class="checkbox consent-row reveal">
             <input name="consent" type="checkbox" required />
-            I confirm that both uploaded documents are valid and belong to the listed players.
+            <span>
+              I confirm that both uploaded documents are valid, belong to the listed players, and can be used for internal tournament verification.
+            </span>
+            <span class="field-error" data-error-for="consent"></span>
           </label>
 
           <div class="submit-row reveal">
-            <button class="button" type="submit">Submit verification</button>
-            <p class="status" id="formStatus"></p>
+            <button class="button" id="submitButton" type="submit">Submit verification</button>
+            <p class="status" id="formStatus" role="status" aria-live="polite"></p>
           </div>
         </form>
       </section>
