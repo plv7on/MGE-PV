@@ -37,6 +37,7 @@
         <div class="review-hero-actions">
           <a class="button button-secondary" href="/">Back to form</a>
           <a class="button button-secondary hidden" id="exportCsvLink" href="/api/submissions.csv" download="mge-submissions.csv">Export CSV</a>
+          <a class="button button-secondary hidden" id="downloadZipLink" href="/api/submissions.zip" download="mge-submissions.zip">Download ZIP</a>
           <button class="button button-secondary hidden" id="logoutButton" type="button">Log out</button>
         </div>
       </section>
@@ -66,6 +67,19 @@
       </section>
 
       <section class="admin-grid hidden reveal" id="adminPanel">
+        <section class="panel storage-panel">
+          <div class="section-heading panel-heading admin-storage-head">
+            <div>
+              <p class="eyebrow">Storage</p>
+              <h2>Upload path and volume status</h2>
+            </div>
+            <p class="panel-copy">This shows exactly where new files are being written on the active deployment.</p>
+          </div>
+          <div class="storage-grid" id="storageGrid">
+            <p class="empty">Loading storage details...</p>
+          </div>
+        </section>
+
         <section class="panel admin-overview">
           <div class="section-heading panel-heading admin-overview-head">
             <div>
@@ -98,6 +112,28 @@
             </div>
           </div>
           <div id="submissionsList" class="submissions-list" aria-live="polite"></div>
+        </section>
+
+        <section class="panel admin-documents">
+          <div class="section-heading panel-heading admin-documents-head">
+            <div>
+              <p class="eyebrow">Documents</p>
+              <h2>All uploaded files</h2>
+            </div>
+            <p class="panel-copy" id="documentsSummary">Open or download any file without switching between team records.</p>
+          </div>
+          <div class="queue-toolbar">
+            <label class="field queue-search">
+              <span class="field-label">Sort documents</span>
+              <select id="documentSort">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="team">Team name</option>
+                <option value="status">Review status</option>
+              </select>
+            </label>
+          </div>
+          <div id="documentsList" class="documents-browser" aria-live="polite"></div>
         </section>
 
         <section class="panel admin-detail" id="detailPanel">

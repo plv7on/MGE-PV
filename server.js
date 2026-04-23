@@ -10,7 +10,8 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (IS_PRODUCTION ? "" : "mge2026admin");
 const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
-const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, "data"));
+const DEFAULT_DATA_DIR = path.join(ROOT, "data");
+const DATA_DIR = resolveDataDir();
 const UPLOAD_DIR = path.join(DATA_DIR, "uploads");
 const SUBMISSIONS_FILE = path.join(DATA_DIR, "submissions.json");
 
@@ -98,6 +99,29 @@ const server = http.createServer(async (req, res) => {
       });
       res.end(csv);
       return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/submissions.zip") {
+      if (!requireAdmin(req, res)) {
+        return;
+      }
+      const submissions = readJson(SUBMISSIONS_FILE);
+      const archive = buildSubmissionsArchive(submissions);
+      const stamp = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+      res.writeHead(200, {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="mge-submissions-${stamp}.zip"`,
+        "Cache-Control": "no-store"
+      });
+      res.end(archive);
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/admin/storage") {
+      if (!requireAdmin(req, res)) {
+        return;
+      }
+      return sendJson(res, 200, getStorageSummary());
     }
 
     if (req.method === "POST" && url.pathname === "/api/submissions") {
@@ -191,7 +215,49 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`MGE verification system running on ${HOST}:${PORT}`);
   console.log(`Data directory: ${DATA_DIR}`);
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    console.log(`Railway volume mount: ${process.env.RAILWAY_VOLUME_MOUNT_PATH}`);
+  }
 });
+
+function resolveDataDir() {
+  const explicitDataDir = normalizeEnvPath(process.env.DATA_DIR);
+  if (explicitDataDir) {
+    return explicitDataDir;
+  }
+
+  const railwayMountPath = normalizeEnvPath(process.env.RAILWAY_VOLUME_MOUNT_PATH);
+  if (railwayMountPath) {
+    return railwayMountPath;
+  }
+
+  return path.resolve(DEFAULT_DATA_DIR);
+}
+
+function normalizeEnvPath(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return "";
+  }
+  return path.resolve(value.trim());
+}
+
+function getStorageSummary() {
+  const volumeMountPath = normalizeEnvPath(process.env.RAILWAY_VOLUME_MOUNT_PATH);
+  const explicitDataDir = normalizeEnvPath(process.env.DATA_DIR);
+  return {
+    dataDir: DATA_DIR,
+    uploadDir: UPLOAD_DIR,
+    submissionsFile: SUBMISSIONS_FILE,
+    hasRailwayVolume: Boolean(volumeMountPath),
+    railwayVolumeMountPath: volumeMountPath || null,
+    configuredDataDir: explicitDataDir || null,
+    resolvedFrom: explicitDataDir
+      ? "DATA_DIR"
+      : volumeMountPath
+        ? "RAILWAY_VOLUME_MOUNT_PATH"
+        : "default_local_data"
+  };
+}
 
 function ensureDir(target) {
   fs.mkdirSync(target, { recursive: true });
@@ -414,11 +480,15 @@ function deleteUploadedFiles(files) {
     if (!file || !file.storedName) {
       continue;
     }
-    const target = path.join(UPLOAD_DIR, path.basename(file.storedName));
+    const target = getStoredFilePath(file);
     if (fs.existsSync(target)) {
       fs.unlinkSync(target);
     }
   }
+}
+
+function getStoredFilePath(file) {
+  return path.join(UPLOAD_DIR, path.basename(file.storedName || ""));
 }
 
 function guessExtension(contentType) {
@@ -632,4 +702,195 @@ function csvEscape(value) {
     return `"${normalized.replaceAll('"', '""')}"`;
   }
   return normalized;
+}
+
+function buildSubmissionsArchive(submissions) {
+  const entries = [];
+  const manifest = submissions.map((submission) => ({
+    id: submission.id || "",
+    teamName: submission.teamName || "",
+    createdAt: submission.createdAt || "",
+    reviewStatus: submission.reviewStatus || "pending",
+    player1Epic: submission.player1Epic || "",
+    player1Discord: submission.player1Discord || "",
+    player1DocumentType: submission.player1DocumentType || "",
+    player2Epic: submission.player2Epic || "",
+    player2Discord: submission.player2Discord || "",
+    player2DocumentType: submission.player2DocumentType || "",
+    reviewedAt: submission.reviewedAt || "",
+    reviewedBy: submission.reviewedBy || "",
+    adminNotes: submission.adminNotes || "",
+    files: Array.isArray(submission.files)
+      ? submission.files.map((file) => ({
+          fieldName: file.fieldName || "",
+          originalName: file.originalName || "",
+          storedName: file.storedName || "",
+          contentType: file.contentType || "",
+          size: file.size || 0,
+          url: file.url || ""
+        }))
+      : []
+  }));
+
+  entries.push({
+    name: "manifest.json",
+    data: Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`, "utf8"),
+    date: new Date()
+  });
+
+  submissions.forEach((submission, index) => {
+    const folderName = buildArchiveFolderName(submission, index);
+    const metadata = Buffer.from(`${JSON.stringify(submission, null, 2)}\n`, "utf8");
+    entries.push({
+      name: `${folderName}/submission.json`,
+      data: metadata,
+      date: parseArchiveDate(submission.createdAt)
+    });
+
+    for (const file of submission.files || []) {
+      if (!file || !file.storedName) {
+        continue;
+      }
+
+      const targetPath = getStoredFilePath(file);
+      if (!fs.existsSync(targetPath) || fs.statSync(targetPath).isDirectory()) {
+        continue;
+      }
+
+      const archiveName = buildArchiveFileName(file);
+      const stats = fs.statSync(targetPath);
+      entries.push({
+        name: `${folderName}/${archiveName}`,
+        data: fs.readFileSync(targetPath),
+        date: stats.mtime
+      });
+    }
+  });
+
+  return createZipArchive(entries);
+}
+
+function buildArchiveFolderName(submission, index) {
+  const teamSegment = sanitizeArchiveSegment(submission.teamName) || `submission-${index + 1}`;
+  const idSegment = sanitizeArchiveSegment(submission.id).slice(0, 12) || `row-${index + 1}`;
+  return `${String(index + 1).padStart(3, "0")}-${teamSegment}-${idSegment}`;
+}
+
+function buildArchiveFileName(file) {
+  const baseName = sanitizeArchiveSegment(path.basename(file.originalName || file.storedName || "document"));
+  const fieldName = sanitizeArchiveSegment(file.fieldName || "document");
+  return `${fieldName}-${baseName}`;
+}
+
+function sanitizeArchiveSegment(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[^\w.\- ]+/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/^[_\.]+|[_\.]+$/g, "")
+    .slice(0, 80);
+}
+
+function parseArchiveDate(value) {
+  const date = value ? new Date(value) : new Date();
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+function createZipArchive(entries) {
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  for (const entry of entries) {
+    const nameBuffer = Buffer.from(entry.name.replaceAll("\\", "/"), "utf8");
+    const dataBuffer = Buffer.isBuffer(entry.data) ? entry.data : Buffer.from(entry.data || "");
+    const date = parseArchiveDate(entry.date);
+    const { dosDate, dosTime } = toDosDateTime(date);
+    const crc = crc32(dataBuffer);
+
+    const localHeader = Buffer.alloc(30);
+    localHeader.writeUInt32LE(0x04034b50, 0);
+    localHeader.writeUInt16LE(20, 4);
+    localHeader.writeUInt16LE(0x0800, 6);
+    localHeader.writeUInt16LE(0, 8);
+    localHeader.writeUInt16LE(dosTime, 10);
+    localHeader.writeUInt16LE(dosDate, 12);
+    localHeader.writeUInt32LE(crc, 14);
+    localHeader.writeUInt32LE(dataBuffer.length, 18);
+    localHeader.writeUInt32LE(dataBuffer.length, 22);
+    localHeader.writeUInt16LE(nameBuffer.length, 26);
+    localHeader.writeUInt16LE(0, 28);
+
+    localParts.push(localHeader, nameBuffer, dataBuffer);
+
+    const centralHeader = Buffer.alloc(46);
+    centralHeader.writeUInt32LE(0x02014b50, 0);
+    centralHeader.writeUInt16LE(20, 4);
+    centralHeader.writeUInt16LE(20, 6);
+    centralHeader.writeUInt16LE(0x0800, 8);
+    centralHeader.writeUInt16LE(0, 10);
+    centralHeader.writeUInt16LE(dosTime, 12);
+    centralHeader.writeUInt16LE(dosDate, 14);
+    centralHeader.writeUInt32LE(crc, 16);
+    centralHeader.writeUInt32LE(dataBuffer.length, 20);
+    centralHeader.writeUInt32LE(dataBuffer.length, 24);
+    centralHeader.writeUInt16LE(nameBuffer.length, 28);
+    centralHeader.writeUInt16LE(0, 30);
+    centralHeader.writeUInt16LE(0, 32);
+    centralHeader.writeUInt16LE(0, 34);
+    centralHeader.writeUInt16LE(0, 36);
+    centralHeader.writeUInt32LE(0, 38);
+    centralHeader.writeUInt32LE(offset, 42);
+
+    centralParts.push(centralHeader, nameBuffer);
+    offset += localHeader.length + nameBuffer.length + dataBuffer.length;
+  }
+
+  const centralDirectory = Buffer.concat(centralParts);
+  const endRecord = Buffer.alloc(22);
+  endRecord.writeUInt32LE(0x06054b50, 0);
+  endRecord.writeUInt16LE(0, 4);
+  endRecord.writeUInt16LE(0, 6);
+  endRecord.writeUInt16LE(entries.length, 8);
+  endRecord.writeUInt16LE(entries.length, 10);
+  endRecord.writeUInt32LE(centralDirectory.length, 12);
+  endRecord.writeUInt32LE(offset, 16);
+  endRecord.writeUInt16LE(0, 20);
+
+  return Buffer.concat([...localParts, centralDirectory, endRecord]);
+}
+
+function toDosDateTime(value) {
+  const year = Math.min(Math.max(value.getFullYear(), 1980), 2107);
+  const dosTime =
+    (value.getHours() << 11) |
+    (value.getMinutes() << 5) |
+    Math.floor(value.getSeconds() / 2);
+  const dosDate =
+    ((year - 1980) << 9) |
+    ((value.getMonth() + 1) << 5) |
+    value.getDate();
+
+  return { dosDate, dosTime };
+}
+
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < table.length; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+    }
+    table[index] = value >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc = CRC32_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }
