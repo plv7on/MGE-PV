@@ -107,24 +107,50 @@ function renderSubmissions() {
 
   for (const submission of filtered) {
     const article = document.createElement("article");
-    article.className = `review-card review-list-card${submission.id === selectedId ? " selected-card" : ""}`;
+    article.className = `review-card review-list-card review-list-item${submission.id === selectedId ? " selected-card" : ""}`;
+    article.setAttribute("role", "button");
+    article.setAttribute("tabindex", "0");
+    article.setAttribute("aria-pressed", submission.id === selectedId ? "true" : "false");
     article.innerHTML = `
-      <div class="review-top">
-        <div>
-          <h3>${escapeHtml(submission.teamName)}</h3>
-          <p class="queue-player-line">${escapeHtml(submission.player1Epic)} and ${escapeHtml(submission.player2Epic)}</p>
+      <div class="queue-card-accent queue-card-accent-${submission.reviewStatus}" aria-hidden="true"></div>
+      <div class="queue-card-shell">
+        <div class="queue-card-head">
+          <div class="queue-title-group">
+            <p class="queue-kicker">Team dossier</p>
+            <h3>${escapeHtml(submission.teamName)}</h3>
+          </div>
+          <div class="queue-head-status">
+            <span class="badge badge-${submission.reviewStatus}">${escapeHtml(submission.reviewStatus)}</span>
+            <span class="queue-open-label">${submission.id === selectedId ? "Open" : "Select"}</span>
+          </div>
         </div>
-        <span class="badge badge-${submission.reviewStatus}">${escapeHtml(submission.reviewStatus)}</span>
-      </div>
-      <div class="queue-meta">
-        <span class="queue-meta-item">Submitted ${formatDate(submission.createdAt)}</span>
-        <span class="queue-meta-item">2 documents</span>
+
+        <div class="queue-player-grid">
+          ${renderQueuePlayer("Player 1", submission.player1Epic, submission.player1Discord)}
+          ${renderQueuePlayer("Player 2", submission.player2Epic, submission.player2Discord)}
+        </div>
+
+        <div class="queue-card-foot">
+          <div class="queue-meta">
+            <span class="queue-meta-item">Submitted ${formatDate(submission.createdAt)}</span>
+            <span class="queue-meta-item">${submission.files.length} file${submission.files.length === 1 ? "" : "s"}</span>
+            <span class="queue-meta-item">${submission.reviewedBy ? `By ${escapeHtml(submission.reviewedBy)}` : "Unassigned"}</span>
+          </div>
+          <p class="queue-review-line">${submission.reviewedAt ? `Reviewed ${formatDate(submission.reviewedAt)}` : "No review saved yet."}</p>
+        </div>
       </div>
     `;
-    article.addEventListener("click", () => {
+    const selectSubmission = () => {
       selectedId = submission.id;
       renderSubmissions();
       renderDetail();
+    };
+    article.addEventListener("click", selectSubmission);
+    article.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectSubmission();
+      }
     });
     submissionsList.appendChild(article);
   }
@@ -138,101 +164,100 @@ function renderDetail() {
   }
 
   detailContent.innerHTML = `
-    <div class="detail-head detail-summary">
-      <div class="detail-title-block">
-        <p class="eyebrow">Submission</p>
-        <h3>${escapeHtml(submission.teamName)}</h3>
-        <div class="detail-meta-line">
-          <span class="detail-meta-pill">Submitted ${formatDate(submission.createdAt)}</span>
-          <span class="detail-meta-pill">${submission.files.length} document${submission.files.length === 1 ? "" : "s"}</span>
-        </div>
-      </div>
-      <div class="detail-status-block">
-        <span class="badge badge-${submission.reviewStatus}">${escapeHtml(submission.reviewStatus)}</span>
-        <p class="muted-line">${submission.reviewedAt ? `Last reviewed ${formatDate(submission.reviewedAt)}` : "No review saved yet."}</p>
-      </div>
-    </div>
-
-    <section class="detail-section detail-section-compact">
-      <div class="summary-strip">
-        <article class="summary-pill-card">
-          <p class="info-label">Team</p>
-          <strong class="info-value">${escapeHtml(submission.teamName)}</strong>
-        </article>
-        <article class="summary-pill-card">
-          <p class="info-label">Documents</p>
-          <strong class="info-value">${submission.files.length}</strong>
-        </article>
-        <article class="summary-pill-card">
-          <p class="info-label">Reviewed By</p>
-          <strong class="info-value">${escapeHtml(submission.reviewedBy || "Not assigned")}</strong>
-        </article>
-      </div>
-    </section>
-
-    <div class="detail-grid detail-grid-players">
-      <article class="info-card">
-        <div class="player-card-head">
-          <p class="info-label">Player 1</p>
-          <span class="player-chip">Primary</span>
-        </div>
-        <strong class="info-value">${escapeHtml(submission.player1Epic)}</strong>
-        <div class="info-stack">
-          <p class="info-row"><span class="info-key">Discord</span><span>${escapeHtml(submission.player1Discord)}</span></p>
-          <p class="info-row"><span class="info-key">Document</span><span>${escapeHtml(getFileLabel(submission.files, "player1Document"))}</span></p>
-        </div>
-      </article>
-      <article class="info-card">
-        <div class="player-card-head">
-          <p class="info-label">Player 2</p>
-          <span class="player-chip">Secondary</span>
-        </div>
-        <strong class="info-value">${escapeHtml(submission.player2Epic)}</strong>
-        <div class="info-stack">
-          <p class="info-row"><span class="info-key">Discord</span><span>${escapeHtml(submission.player2Discord)}</span></p>
-          <p class="info-row"><span class="info-key">Document</span><span>${escapeHtml(getFileLabel(submission.files, "player2Document"))}</span></p>
-        </div>
-      </article>
-    </div>
-
-    <section class="detail-section">
-      <div class="section-heading detail-section-head">
-        <div>
-          <p class="eyebrow">Documents</p>
-          <h3>Identity files</h3>
-        </div>
-      </div>
-      <div class="documents-grid">
-        ${submission.files.map(renderFileCard).join("")}
-      </div>
-    </section>
-
-    <section class="detail-section">
-      <div class="section-heading detail-section-head">
-        <div>
-          <p class="eyebrow">Decision</p>
-          <h3>Review controls</h3>
-        </div>
-      </div>
-      <form id="reviewForm" class="stack review-form">
-        <div class="field">
-          <span class="field-label">Review status</span>
-          <div class="status-pill-group" role="radiogroup" aria-label="Review status">
-            ${renderStatusPills(submission.reviewStatus)}
+    <div class="detail-dossier">
+      <section class="detail-hero-card">
+        <div class="detail-hero-main">
+          <p class="eyebrow">Submission dossier</p>
+          <p class="detail-kicker">Fortnite team review</p>
+          <h3>${escapeHtml(submission.teamName)}</h3>
+          <p class="detail-hero-copy">Validate both players, inspect the uploaded identity files, and record the final decision without losing the timeline.</p>
+          <div class="detail-meta-line">
+            <span class="detail-meta-pill">Submitted ${formatDate(submission.createdAt)}</span>
+            <span class="detail-meta-pill">${submission.files.length} document${submission.files.length === 1 ? "" : "s"}</span>
+            <span class="detail-meta-pill">${submission.reviewedBy ? `Reviewer ${escapeHtml(submission.reviewedBy)}` : "Reviewer not assigned"}</span>
           </div>
-          <input type="hidden" name="reviewStatus" value="${escapeHtml(submission.reviewStatus)}" />
         </div>
-        <label class="field">
-          <span class="field-label">Admin notes</span>
-          <textarea name="adminNotes" rows="5" placeholder="Internal review notes">${escapeHtml(submission.adminNotes || "")}</textarea>
-        </label>
-        <div class="submit-row">
-          <button class="button" type="submit">Save review</button>
-          <button class="button button-secondary danger-button" id="deleteSubmissionButton" type="button">Delete submission</button>
-          <p class="status" id="reviewStatusText">${submission.reviewedAt ? `Last reviewed ${formatDate(submission.reviewedAt)}` : ""}</p>
+        <div class="detail-hero-side">
+          <span class="badge badge-${submission.reviewStatus}">${escapeHtml(submission.reviewStatus)}</span>
+          <div class="detail-status-note">
+            <strong>${submission.reviewedAt ? "Review saved" : "Awaiting decision"}</strong>
+            <p class="muted-line">${submission.reviewedAt ? `Last updated ${formatDate(submission.reviewedAt)}` : "No review has been stored for this submission yet."}</p>
+          </div>
+          <div class="detail-hero-stats">
+            <article class="detail-stat-chip">
+              <span class="detail-stat-label">Files</span>
+              <strong>${submission.files.length}</strong>
+            </article>
+            <article class="detail-stat-chip">
+              <span class="detail-stat-label">Notes</span>
+              <strong>${submission.adminNotes?.trim() ? "Saved" : "Empty"}</strong>
+            </article>
+          </div>
         </div>
-      </form>
-    </section>
+      </section>
+
+      <div class="detail-dossier-grid">
+        <div class="detail-main-column">
+          <section class="detail-section detail-section-first">
+            <div class="section-heading detail-section-head">
+              <div>
+                <p class="eyebrow">Players</p>
+                <h3>Identity snapshot</h3>
+              </div>
+            </div>
+            <div class="detail-grid detail-grid-players">
+              ${renderPlayerCard("Player 1", "Primary", submission.player1Epic, submission.player1Discord, getFileLabel(submission.files, "player1Document"))}
+              ${renderPlayerCard("Player 2", "Secondary", submission.player2Epic, submission.player2Discord, getFileLabel(submission.files, "player2Document"))}
+            </div>
+          </section>
+
+          <section class="detail-section">
+            <div class="section-heading detail-section-head">
+              <div>
+                <p class="eyebrow">Documents</p>
+                <h3>Identity files</h3>
+              </div>
+            </div>
+            <div class="documents-grid documents-grid-review">
+              ${submission.files.map(renderFileCard).join("")}
+            </div>
+          </section>
+        </div>
+
+        <aside class="detail-side-column">
+          <section class="detail-decision-card">
+            <div class="section-heading detail-section-head">
+              <div>
+                <p class="eyebrow">Decision</p>
+                <h3>Review controls</h3>
+              </div>
+            </div>
+            <form id="reviewForm" class="stack review-form review-form-side">
+              <div class="field">
+                <span class="field-label">Review status</span>
+                <div class="status-pill-group" role="radiogroup" aria-label="Review status">
+                  ${renderStatusPills(submission.reviewStatus)}
+                </div>
+                <input type="hidden" name="reviewStatus" value="${escapeHtml(submission.reviewStatus)}" />
+              </div>
+              <label class="field">
+                <span class="field-label">Admin notes</span>
+                <textarea name="adminNotes" rows="8" placeholder="Internal review notes">${escapeHtml(submission.adminNotes || "")}</textarea>
+              </label>
+              <div class="review-side-meta">
+                <p class="review-side-line"><span>Reviewer</span><strong>${escapeHtml(submission.reviewedBy || "Not assigned")}</strong></p>
+                <p class="review-side-line"><span>Last change</span><strong>${submission.reviewedAt ? formatDate(submission.reviewedAt) : "Not reviewed"}</strong></p>
+              </div>
+              <div class="submit-row">
+                <button class="button" type="submit">Save review</button>
+                <button class="button button-secondary danger-button" id="deleteSubmissionButton" type="button">Delete submission</button>
+                <p class="status" id="reviewStatusText">${submission.reviewedAt ? `Last reviewed ${formatDate(submission.reviewedAt)}` : ""}</p>
+              </div>
+            </form>
+          </section>
+        </aside>
+      </div>
+    </div>
   `;
 
   document.getElementById("reviewForm").addEventListener("submit", async (event) => {
@@ -288,6 +313,32 @@ function renderDetail() {
   });
 }
 
+function renderQueuePlayer(label, epic, discord) {
+  return `
+    <article class="queue-player-card">
+      <p class="queue-player-label">${escapeHtml(label)}</p>
+      <strong class="queue-player-name">${escapeHtml(epic)}</strong>
+      <p class="queue-player-line">${escapeHtml(discord)}</p>
+    </article>
+  `;
+}
+
+function renderPlayerCard(label, role, epic, discord, documentLabel) {
+  return `
+    <article class="info-card player-detail-card">
+      <div class="player-card-head">
+        <p class="info-label">${escapeHtml(label)}</p>
+        <span class="player-chip">${escapeHtml(role)}</span>
+      </div>
+      <strong class="info-value">${escapeHtml(epic)}</strong>
+      <div class="info-stack">
+        <p class="info-row"><span class="info-key">Discord</span><span>${escapeHtml(discord)}</span></p>
+        <p class="info-row"><span class="info-key">Document</span><span>${escapeHtml(documentLabel)}</span></p>
+      </div>
+    </article>
+  `;
+}
+
 function renderFileCard(file) {
   const preview = file.contentType.startsWith("image/")
     ? `<img class="doc-preview" src="${file.url}" alt="${escapeHtml(file.originalName)}" />`
@@ -295,7 +346,10 @@ function renderFileCard(file) {
 
   return `
     <article class="doc-card">
-      <p class="info-label">${escapeHtml(file.fieldName === "player1Document" ? "Player 1 Document" : "Player 2 Document")}</p>
+      <div class="doc-card-head">
+        <p class="info-label">${escapeHtml(file.fieldName === "player1Document" ? "Player 1 Document" : "Player 2 Document")}</p>
+        <span class="doc-type-pill">${escapeHtml(file.contentType.includes("pdf") ? "PDF" : file.contentType.split("/")[1] || "file")}</span>
+      </div>
       ${preview}
       <p class="doc-name">${escapeHtml(file.originalName)}</p>
       <div class="file-links">
@@ -390,23 +444,32 @@ function capitalize(value) {
 }
 
 function getVisibleSubmissions() {
-  return submissions.filter((item) => {
-    const matchesFilter = activeFilter === "all" || item.reviewStatus === activeFilter;
-    if (!matchesFilter) {
-      return false;
-    }
-    if (!searchQuery) {
-      return true;
-    }
-    const haystack = [
-      item.teamName,
-      item.player1Epic,
-      item.player1Discord,
-      item.player2Epic,
-      item.player2Discord
-    ].join(" ").toLowerCase();
-    return haystack.includes(searchQuery);
-  });
+  const statusOrder = { pending: 0, approved: 1, rejected: 2 };
+  return submissions
+    .filter((item) => {
+      const matchesFilter = activeFilter === "all" || item.reviewStatus === activeFilter;
+      if (!matchesFilter) {
+        return false;
+      }
+      if (!searchQuery) {
+        return true;
+      }
+      const haystack = [
+        item.teamName,
+        item.player1Epic,
+        item.player1Discord,
+        item.player2Epic,
+        item.player2Discord
+      ].join(" ").toLowerCase();
+      return haystack.includes(searchQuery);
+    })
+    .sort((left, right) => {
+      const statusDelta = (statusOrder[left.reviewStatus] ?? 99) - (statusOrder[right.reviewStatus] ?? 99);
+      if (activeFilter === "all" && statusDelta !== 0) {
+        return statusDelta;
+      }
+      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    });
 }
 
 function getFileLabel(files, fieldName) {

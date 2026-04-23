@@ -731,6 +731,8 @@ input[type="file"] {
 
 .review-list-card {
   cursor: pointer;
+  padding: 0;
+  overflow: hidden;
 }
 
 .review-list-card:hover {
@@ -744,9 +746,107 @@ input[type="file"] {
   box-shadow: 0 0 0 1px rgba(255, 77, 18, 0.28);
 }
 
+.review-list-item {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr);
+}
+
+.queue-card-shell {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.queue-card-accent {
+  min-height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.queue-card-accent-pending {
+  background: linear-gradient(180deg, rgba(255, 190, 92, 0.9), rgba(255, 190, 92, 0.2));
+}
+
+.queue-card-accent-approved {
+  background: linear-gradient(180deg, rgba(15, 142, 93, 0.94), rgba(15, 142, 93, 0.24));
+}
+
+.queue-card-accent-rejected {
+  background: linear-gradient(180deg, rgba(204, 76, 76, 0.92), rgba(204, 76, 76, 0.24));
+}
+
+.queue-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: start;
+}
+
+.queue-title-group {
+  min-width: 0;
+}
+
+.queue-kicker,
+.detail-kicker {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.queue-title-group h3,
+.detail-hero-main h3 {
+  margin-bottom: 0;
+}
+
+.queue-head-status {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.queue-open-label {
+  color: var(--muted);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.queue-player-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.queue-player-card {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.queue-player-label {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.queue-player-name {
+  display: block;
+  margin-bottom: 6px;
+  color: #ffffff;
+}
+
 .queue-player-line {
   margin-bottom: 0;
-  color: #e6eaef;
+  color: var(--muted);
+  word-break: break-word;
 }
 
 .queue-meta {
@@ -765,27 +865,50 @@ input[type="file"] {
   font-size: 0.82rem;
 }
 
-.detail-head,
+.queue-card-foot {
+  display: grid;
+  gap: 12px;
+}
+
+.queue-review-line {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .detail-grid,
 .documents-grid {
   display: grid;
   gap: 16px;
 }
 
-.detail-head {
-  grid-template-columns: 1fr auto;
-  align-items: start;
-  margin-bottom: 18px;
-}
-
-.detail-summary {
-  padding: 0 0 18px;
-  border-bottom: 1px solid var(--line);
-}
-
-.detail-title-block {
+.detail-dossier {
   display: grid;
-  gap: 10px;
+  gap: 20px;
+}
+
+.detail-hero-card {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 77, 18, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012));
+}
+
+.detail-hero-main {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-hero-copy {
+  max-width: 58ch;
+  margin-bottom: 0;
+  color: #dde3ea;
+  line-height: 1.6;
 }
 
 .detail-meta-line {
@@ -805,11 +928,83 @@ input[type="file"] {
   font-size: 0.82rem;
 }
 
-.detail-status-block {
+.detail-hero-side {
   display: grid;
-  justify-items: end;
-  gap: 10px;
+  gap: 14px;
   align-content: start;
+  justify-items: start;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.detail-status-note {
+  display: grid;
+  gap: 6px;
+}
+
+.detail-status-note strong {
+  font-size: 1.04rem;
+  color: #ffffff;
+}
+
+.detail-status-note .muted-line {
+  margin-bottom: 0;
+}
+
+.detail-hero-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-stat-chip {
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.detail-stat-chip strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.28rem;
+  color: #ffffff;
+}
+
+.detail-stat-label {
+  color: var(--muted);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 0.96rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.detail-dossier-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  align-items: start;
+}
+
+.detail-main-column {
+  display: grid;
+  gap: 0;
+}
+
+.detail-side-column {
+  position: sticky;
+  top: 18px;
+}
+
+.detail-decision-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.014)),
+    var(--panel-strong);
 }
 
 .detail-grid,
@@ -826,6 +1021,10 @@ input[type="file"] {
 .doc-card {
   padding: 18px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.015));
+}
+
+.player-detail-card {
+  min-height: 100%;
 }
 
 .player-card-head {
@@ -945,10 +1144,6 @@ input[type="file"] {
   max-width: 40ch;
 }
 
-.doc-card {
-  align-content: start;
-}
-
 .review-form {
   margin-top: 4px;
   max-width: 720px;
@@ -956,6 +1151,61 @@ input[type="file"] {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.024), rgba(255, 255, 255, 0.014));
+}
+
+.review-form-side {
+  margin-top: 0;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.review-side-meta {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.review-side-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 0;
+  color: #edf1f5;
+}
+
+.review-side-line span {
+  color: var(--muted);
+}
+
+.doc-card {
+  align-content: start;
+}
+
+.doc-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.doc-type-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .submit-shell {
@@ -1157,7 +1407,11 @@ input[type="file"] {
   .hero-split,
   .duo-grid,
   .detail-grid,
-  .documents-grid {
+  .documents-grid,
+  .detail-hero-card,
+  .detail-dossier-grid,
+  .queue-player-grid,
+  .detail-hero-stats {
     grid-template-columns: 1fr;
   }
 
@@ -1174,8 +1428,7 @@ input[type="file"] {
     padding: 18px;
   }
 
-  .site-top,
-  .detail-head {
+  .site-top {
     grid-template-columns: 1fr;
   }
 
@@ -1202,12 +1455,9 @@ input[type="file"] {
     justify-content: flex-start;
   }
 
-  .admin-sidebar {
+  .admin-sidebar,
+  .detail-side-column {
     position: static;
-  }
-
-  .detail-status-block {
-    justify-items: start;
   }
 
   .info-row {
@@ -1217,6 +1467,17 @@ input[type="file"] {
   .player-card-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .queue-card-head,
+  .doc-card-head,
+  .review-side-line {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .queue-head-status {
+    justify-items: start;
   }
 
   .submit-stage {
