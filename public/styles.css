@@ -26,6 +26,7 @@ body {
   min-height: 100vh;
   font-family: "Inter", "Segoe UI", Arial, Helvetica, sans-serif;
   color: var(--text);
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top left, rgba(15, 142, 93, 0.14), transparent 30%),
     radial-gradient(circle at top right, rgba(255, 77, 18, 0.18), transparent 34%),
@@ -622,13 +623,9 @@ input[type="file"] {
 
 .admin-grid {
   display: grid;
-  gap: 24px;
-  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 20px;
+  grid-template-columns: 1fr;
   align-items: start;
-}
-
-.admin-overview {
-  grid-column: 1 / -1;
 }
 
 .admin-overview-head,
@@ -640,18 +637,40 @@ input[type="file"] {
 
 .admin-sidebar {
   display: grid;
-  gap: 16px;
-  align-self: start;
-  position: sticky;
-  top: 18px;
+  gap: 18px;
 }
 
 .queue-search {
   margin-top: 4px;
 }
 
+.queue-toolbar {
+  display: grid;
+  gap: 14px;
+}
+
+.submissions-list {
+  display: grid;
+  gap: 12px;
+  max-height: min(58vh, 760px);
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+.queue-empty {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
 .admin-detail {
-  min-height: 640px;
+  min-height: 0;
 }
 
 .admin-auth {
@@ -749,12 +768,13 @@ input[type="file"] {
 .review-list-item {
   display: grid;
   grid-template-columns: 6px minmax(0, 1fr);
+  scroll-snap-align: start;
 }
 
 .queue-card-shell {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 12px;
+  padding: 16px;
 }
 
 .queue-card-accent {
@@ -774,15 +794,15 @@ input[type="file"] {
   background: linear-gradient(180deg, rgba(204, 76, 76, 0.92), rgba(204, 76, 76, 0.24));
 }
 
-.queue-card-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: start;
-}
-
 .queue-title-group {
   min-width: 0;
+}
+
+.queue-row-main {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
 }
 
 .queue-kicker,
@@ -799,12 +819,38 @@ input[type="file"] {
 .queue-title-group h3,
 .detail-hero-main h3 {
   margin-bottom: 0;
+  overflow-wrap: anywhere;
 }
 
 .queue-head-status {
   display: grid;
   justify-items: end;
   gap: 8px;
+}
+
+.queue-player-summary-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.queue-player-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  color: #edf1f5;
+  overflow-wrap: anywhere;
+}
+
+.queue-player-summary span {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-family: "Teko", Impact, sans-serif;
+  font-size: 0.92rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .queue-open-label {
@@ -815,45 +861,11 @@ input[type="file"] {
   text-transform: uppercase;
 }
 
-.queue-player-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.queue-player-card {
-  padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.queue-player-label {
-  margin: 0 0 6px;
-  color: var(--accent);
-  font-family: "Teko", Impact, sans-serif;
-  font-size: 0.92rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.queue-player-name {
-  display: block;
-  margin-bottom: 6px;
-  color: #ffffff;
-}
-
-.queue-player-line {
-  margin-bottom: 0;
-  color: var(--muted);
-  word-break: break-word;
-}
-
 .queue-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 2px;
 }
 
 .queue-meta-item {
@@ -865,15 +877,12 @@ input[type="file"] {
   font-size: 0.82rem;
 }
 
-.queue-card-foot {
-  display: grid;
-  gap: 12px;
-}
-
 .queue-review-line {
+  margin-top: 0;
   margin-bottom: 0;
   color: var(--muted);
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .detail-grid,
@@ -1066,6 +1075,7 @@ input[type="file"] {
   margin: 8px 0 12px;
   font-size: 1.18rem;
   color: #ffffff;
+  overflow-wrap: anywhere;
 }
 
 .info-stack {
@@ -1469,11 +1479,14 @@ input[type="file"] {
     flex-direction: column;
   }
 
-  .queue-card-head,
   .doc-card-head,
   .review-side-line {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .queue-row-main {
+    grid-template-columns: 1fr;
   }
 
   .queue-head-status {

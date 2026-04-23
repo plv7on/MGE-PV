@@ -81,21 +81,23 @@
           <div class="section-heading panel-heading admin-sidebar-head">
             <div>
               <p class="eyebrow">Queue</p>
-              <h2>Submission list</h2>
+              <h2>Team submissions</h2>
             </div>
-            <p class="panel-copy" id="queueSummary">All active submissions.</p>
+            <p class="panel-copy" id="queueSummary">Select a team from the compact queue below.</p>
           </div>
-          <label class="field queue-search">
-            <span class="field-label">Search teams or players</span>
-            <input id="queueSearch" type="search" placeholder="Team name, Epic ID, Discord" />
-          </label>
-          <div class="filter-row" id="filterRow">
-            <button class="button button-secondary active-filter" data-filter="all" type="button">All</button>
-            <button class="button button-secondary" data-filter="pending" type="button">Pending</button>
-            <button class="button button-secondary" data-filter="approved" type="button">Approved</button>
-            <button class="button button-secondary" data-filter="rejected" type="button">Rejected</button>
+          <div class="queue-toolbar">
+            <label class="field queue-search">
+              <span class="field-label">Search teams or players</span>
+              <input id="queueSearch" type="search" placeholder="Team name, Epic ID, Discord" />
+            </label>
+            <div class="filter-row" id="filterRow">
+              <button class="button button-secondary active-filter" data-filter="all" type="button">All</button>
+              <button class="button button-secondary" data-filter="pending" type="button">Pending</button>
+              <button class="button button-secondary" data-filter="approved" type="button">Approved</button>
+              <button class="button button-secondary" data-filter="rejected" type="button">Rejected</button>
+            </div>
           </div>
-          <div id="submissionsList" class="stack"></div>
+          <div id="submissionsList" class="submissions-list" aria-live="polite"></div>
         </section>
 
         <section class="panel admin-detail" id="detailPanel">

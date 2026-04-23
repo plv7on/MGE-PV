@@ -101,7 +101,7 @@ function renderSubmissions() {
   const filterLabel = activeFilter === "all" ? "the queue" : activeFilter;
   queueSummary.textContent = `${filtered.length} submission${filtered.length === 1 ? "" : "s"} in ${filterLabel}${searchQuery ? ` matching "${searchQuery}"` : ""}.`;
   if (!filtered.length) {
-    submissionsList.innerHTML = '<p class="empty">No verification submissions yet.</p>';
+    submissionsList.innerHTML = '<p class="empty queue-empty">No verification submissions match the current filters.</p>';
     return;
   }
 
@@ -114,30 +114,26 @@ function renderSubmissions() {
     article.innerHTML = `
       <div class="queue-card-accent queue-card-accent-${submission.reviewStatus}" aria-hidden="true"></div>
       <div class="queue-card-shell">
-        <div class="queue-card-head">
+        <div class="queue-row-main">
           <div class="queue-title-group">
             <p class="queue-kicker">Team dossier</p>
             <h3>${escapeHtml(submission.teamName)}</h3>
+            <div class="queue-player-summary-list">
+              <p class="queue-player-summary"><span>P1</span>${escapeHtml(submission.player1Epic)}</p>
+              <p class="queue-player-summary"><span>P2</span>${escapeHtml(submission.player2Epic)}</p>
+            </div>
           </div>
           <div class="queue-head-status">
             <span class="badge badge-${submission.reviewStatus}">${escapeHtml(submission.reviewStatus)}</span>
             <span class="queue-open-label">${submission.id === selectedId ? "Open" : "Select"}</span>
           </div>
         </div>
-
-        <div class="queue-player-grid">
-          ${renderQueuePlayer("Player 1", submission.player1Epic, submission.player1Discord)}
-          ${renderQueuePlayer("Player 2", submission.player2Epic, submission.player2Discord)}
+        <div class="queue-meta">
+          <span class="queue-meta-item">Submitted ${formatDate(submission.createdAt)}</span>
+          <span class="queue-meta-item">${submission.files.length} file${submission.files.length === 1 ? "" : "s"}</span>
+          <span class="queue-meta-item">${submission.reviewedBy ? `By ${escapeHtml(submission.reviewedBy)}` : "Unassigned"}</span>
         </div>
-
-        <div class="queue-card-foot">
-          <div class="queue-meta">
-            <span class="queue-meta-item">Submitted ${formatDate(submission.createdAt)}</span>
-            <span class="queue-meta-item">${submission.files.length} file${submission.files.length === 1 ? "" : "s"}</span>
-            <span class="queue-meta-item">${submission.reviewedBy ? `By ${escapeHtml(submission.reviewedBy)}` : "Unassigned"}</span>
-          </div>
-          <p class="queue-review-line">${submission.reviewedAt ? `Reviewed ${formatDate(submission.reviewedAt)}` : "No review saved yet."}</p>
-        </div>
+        <p class="queue-review-line">${submission.reviewedAt ? `Reviewed ${formatDate(submission.reviewedAt)}` : "No review saved yet."}</p>
       </div>
     `;
     const selectSubmission = () => {
@@ -311,16 +307,6 @@ function renderDetail() {
     renderSubmissions();
     renderDetail();
   });
-}
-
-function renderQueuePlayer(label, epic, discord) {
-  return `
-    <article class="queue-player-card">
-      <p class="queue-player-label">${escapeHtml(label)}</p>
-      <strong class="queue-player-name">${escapeHtml(epic)}</strong>
-      <p class="queue-player-line">${escapeHtml(discord)}</p>
-    </article>
-  `;
 }
 
 function renderPlayerCard(label, role, epic, discord, documentLabel) {
